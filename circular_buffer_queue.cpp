@@ -16,6 +16,7 @@
  * The FIFO queue functions
  *   enqueue(AudioBuffer *audio_buffer)
  *      Adds the audio buffer pointers to the Queue
+ *
  *   
  *   dequeue()
  *      removes the a pointer to the audio buffer which was added first to the Queue. 
@@ -32,6 +33,10 @@
  *   isFull()
  *      Checks whether the Queue is full or not. If yes, returns TRUE.
  * 
+ * #####################################
+ * N is the size OR capacity of circular buffer.
+ * Time complexity: O(1) for all operations
+ * Space complexity: O(N)
  *   
  * */
 
@@ -49,17 +54,18 @@ struct AudioBuffer
 };
 
 class CyclicQueue{
-    public:
-        vector<AudioBuffer*> q; // A vector that stores the pointers to the audio buffers
-        int size; //size of the Circular queue. Its fixed. When the 
+    private:
+        vector<AudioBuffer*> circular_buffer; // A vector that stores the pointers to the audio buffers
+        int buffer_size; //size of the Circular queue. Its fixed. When the 
         int front; //points to the front of the Queue
         int rear; //points to the rear of the 
-    
+
+    public:
         //A constructor to initialize the variables
-        //When an object is created these will be inititalised automatically
+        //When an object is created these will be initialised automatically
         CyclicQueue(int k){
-            size = k;
-            q.resize(size);
+            buffer_size = k;
+            circular_buffer.resize(buffer_size);
             //when the circular queue is empty both are point to -1
             front = -1;
             rear= -1;
@@ -79,14 +85,14 @@ class CyclicQueue{
                         rear = 0;
                     }
                     //to maintain the circular condition
-                    else if(rear == size-1){
+                    else if(rear == buffer_size-1){
                         rear = 0;
                     }
                     //normal case
                     else{
                         rear += 1;
                     }
-                    q[rear] = audio_buffer;
+                    circular_buffer[rear] = audio_buffer;
                 }
                 else{
                     throw ("Queue Full Error");
@@ -97,7 +103,7 @@ class CyclicQueue{
 
                 //Circular queue is full. So checks two conditions to enequeue
                 //next pointer
-                if((front==0 && rear == size-1)){
+                if((front==0 && rear == buffer_size-1)){
                     qtop = dequeue();
                     rear = 0;
                 }
@@ -106,7 +112,7 @@ class CyclicQueue{
                     rear +=1;
                 }
 
-                q[rear] = audio_buffer;
+                circular_buffer[rear] = audio_buffer;
             }
             return;
         } 
@@ -119,14 +125,14 @@ class CyclicQueue{
                 if(!(isEmpty())){
                     //if there is only one element. After deQueue the Queue will be empty
 
-                    AudioBuffer *qtop = q[front];
+                    AudioBuffer *qtop = circular_buffer[front];
 
                     if (rear == front){
                         front = -1;
                         rear = -1;
                     }
                     //to maintain the circular condition
-                    else if (front == size-1){
+                    else if (front == buffer_size-1){
                         front = 0;
                     }
                     //normal case
@@ -153,7 +159,7 @@ class CyclicQueue{
                 return NULL;
             }
 
-            return q[front];
+            return circular_buffer[front];
         }
         
         AudioBuffer *EndOfQueue(){
@@ -164,7 +170,7 @@ class CyclicQueue{
                 return NULL;
             }
 
-            return q[rear];
+            return circular_buffer[rear];
         }
 
         bool isEmpty(){
@@ -179,11 +185,28 @@ class CyclicQueue{
         bool isFull(){
             //returns true of the circular queue is full
 
-            if ((front == 0 && rear == size -1) || (rear == front-1)){
+            if ((front == 0 && rear == buffer_size -1) || (rear == front-1)){
                 return 1;
             }
             else{
                 return 0;
+            }
+        }
+
+        int returnFront(){
+            return front;
+        }
+
+        int returnRear(){
+            return rear;
+        }
+
+        int QueueSize(){
+            if (rear > front){
+                return rear-front;
+            }
+            else{
+                return buffer_size - (front-rear);
             }
         }
 };
@@ -221,6 +244,7 @@ int main(){
 
     //Circurlar queue intialisation
     CyclicQueue *myQueue = new CyclicQueue(buffer_size);
+    //CyclicQueue myQueue(buffer_size); //crates on the stack.
 
     /*test case 1:
     * Checks the circular property of the queue
@@ -243,7 +267,7 @@ int main(){
     myQueue->enqueue(Buffer1);
     myQueue->enqueue(Buffer2);
     myQueue->enqueue(Buffer3); //at this point circular buffer is full
-    cout<<"Front and rear: "<<myQueue->front<<" "<<myQueue->rear<<"\n"; //front =0, rear=2
+    cout<<"Front and rear: "<<myQueue->returnFront()<<" "<<myQueue->returnRear()<<"\n"; //front =0, rear=2
 
     /*
     * Since the Queue is full at this point
@@ -264,7 +288,7 @@ int main(){
     */
     myQueue->enqueue(Buffer4);
     myQueue->enqueue(Buffer5);
-    cout<<"Front and rear: "<<myQueue->front<<" "<<myQueue->rear<<"\n"; //front=2, rear=1
+    cout<<"Front and rear: "<<myQueue->returnFront()<<" "<<myQueue->returnRear()<<"\n"; //front=2, rear=1
 
     //Dequeue
     /*
@@ -276,7 +300,7 @@ int main(){
     x = myQueue->dequeue(); //front= 0, rear=1
     x = myQueue->dequeue(); //front = 1, rear=1
     x = myQueue->dequeue(); // the Queue is empty at this point. front=-1, rear=-1
-    cout<<"Front and rear: "<<myQueue->front<<" "<<myQueue->rear<<"\n"; //front=-1, rear=-1
+    cout<<"Front and rear: "<<myQueue->returnFront()<<" "<<myQueue->returnRear()<<"\n"; //front=-1, rear=-1
 
     /* Check for Queue Empty
     * Since there are no elements in the Queue, the isEmpty should return True
@@ -289,20 +313,6 @@ int main(){
     }
     cout<<myQueue->TopOfQuue()<<"\n";
 
- /*    //myQueue->dequeue();
-    //myQueue->dequeue();
-    //cout<<myQueue->isEmpty()<<"\n";
-    myQueue->enqueue(Buffer3);
-    cout<<myQueue->front<<" "<<myQueue->rear<<"\n";
-    //cout<<myQueue->front<<" "<<myQueue->rear<<"\n";
-    
-    //cout<<myQueue->isEmpty()<<"\n";
-    //cout<<myQueue->isFull()<<"\n";
-
-    cout<<myQueue->TopOfQuue()<<" "<<Buffer2<<"\n";
-
-    cout<<myQueue->EndOfQueue()<<" "<<Buffer3<<"\n";
- */
     delete myQueue;
     return 0;
 
