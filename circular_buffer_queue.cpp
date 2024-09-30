@@ -61,8 +61,7 @@ class CyclicQueue{
         int rear; //points to the rear of the 
 
     public:
-        //A constructor to initialize the variables
-        //When an object is created these will be initialised automatically
+   //When an object is created these will be initialised automatically
         CyclicQueue(int k){
             buffer_size = k;
             circular_buffer.resize(buffer_size);
@@ -201,14 +200,17 @@ class CyclicQueue{
             return rear;
         }
 
+        //returns the number of pointers in the Queue
         int QueueSize(){
             if (rear > front){
-                return rear-front;
+                return (rear-front)+1;
             }
             else{
-                return buffer_size - (front-rear);
+                return (buffer_size - (front-rear))+1;
             }
         }
+
+        //
 };
 
 // writng class member functions outside of class defination.
@@ -317,3 +319,25 @@ int main(){
     return 0;
 
 }
+
+/*
+* Unit tests will check the functionality.
+* This can be done using gtest in c++
+TEST(TestFunctionName, testname){
+EXCEPT_EQ(func(), 0);
+}
+
+TEST_F(CyclicQueuetest, QueueFullCheck){
+    EXCEPT_EQ(isFull(), 1)
+}
+
+TEST_F(CyclicQueuetest, QueueEmptyCheck){
+    EXCEPT_EQ(isEmpty(), 1)
+}
+
+
+TEST_F(CyclicQueuetest, QueuedequeueCheck){
+    EXCEPT_EQ(dequeue(), AudioBuffer *Buffer)
+}
+
+*/
